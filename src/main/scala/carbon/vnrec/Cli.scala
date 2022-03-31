@@ -3,7 +3,7 @@ package carbon.vnrec
 import carbon.vnrec.db.Vndb
 import org.apache.spark.{SparkConf, SparkContext}
 
-object Main {
+object Cli {
   def main(args: Array[String]): Unit = {
     val sc = {
       val conf = new SparkConf()
@@ -17,11 +17,11 @@ object Main {
     val db = new Vndb(sc)
     val engine = new RecommendationEngine(db)
 
-    val initialID = "v23190"
+    val initialID = if (args.length > 0) args(0) else "v23190"
     val initialTitle = db.matchTitle(initialID)
 
     val recommendations = engine
-      .recommend(50, initialID)
+      .recommend(if (args.length > 1) args(1).toInt else 5, initialID)
 
     println("Recommendations for " + initialTitle + ":")
     for (rec <- recommendations) {
