@@ -25,7 +25,11 @@ object Main {
 
     println("Recommendations for " + initialTitle + ":")
     for (rec <- recommendations) {
-      println(rec.id + ": " + db.matchTitle(rec.id) + " (" + (rec.strength * 100).round / 100.0 + ")")
+      println(
+        rec.id + ": " + db.matchTitle(
+          rec.id
+        ) + " (" + (rec.strength * 100).round / 100.0 + ")"
+      )
     }
 
     sc.stop()
