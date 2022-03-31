@@ -29,4 +29,14 @@ class Vndb(private val sc: SparkContext) {
       .reduce((t1, t2) => if (t1._1 < t2._1) t2 else t1)
       ._2
   }
+
+  def search(pattern: String): RDD[String] = {
+    vn_titles
+      .filter(title => {
+        title.title.toLowerCase.contains(pattern.toLowerCase) ||
+          title.latin.toLowerCase.contains(pattern.toLowerCase())
+      })
+      .map(_.id)
+      .distinct
+  }
 }

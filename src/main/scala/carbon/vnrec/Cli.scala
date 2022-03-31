@@ -17,15 +17,27 @@ object Cli {
     val db = new Vndb(sc)
     val engine = new RecommendationEngine(db)
 
-    val initialID = if (args.length > 0) args(0) else "v23190"
-    val initialTitle = db.matchTitle(initialID)
+    args match {
+      case Array("search", pattern) =>
+        db.search(pattern).collect.foreach(vid => {
+          println(vid + ": " + db.matchTitle(vid))
+        })
 
-    val recommendations = engine
-      .recommend(if (args.length > 1) args(1).toInt else 5, initialID)
+      case Array("rec", initialID, n) =>
+        val initialTitle = db.matchTitle(initialID)
 
-    println("Recommendations for " + initialTitle + ":")
-    for (rec <- recommendations) {
-      println(rec.id + ": " + db.matchTitle(rec.id) + " (" + (rec.strength * 100).round / 100.0 + ")")
+        val recommendations = engine
+          .recommend(n.toInt, initialID)
+
+        println("Recommendations for " + initialTitle + ":")
+        for (rec <- recommendations) {
+          println(rec.id + ": " + db.matchTitle(rec.id) + " (" + (rec.strength * 100).round / 100.0 + ")")
+        }
+
+      case _ => println("Invalid arguments\n" +
+        "Usage:\n" +
+        "search NAME\n" +
+        "rec ID COUNT")
     }
 
     sc.stop()
