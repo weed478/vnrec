@@ -25,15 +25,15 @@ object Vn {
   }
 }
 
-case class Vn private (id: String,
-                       olang: String,
-                       image: String,
-                       l_wikidata: Option[String],
-                       c_votecount: Int,
-                       c_popularity: Int,
-                       c_rating: Option[Int],
-                       length: Int,
-                       alias: Option[String],
-                       l_renai: Option[Int],
-                       desc: String,
-                       c_average: Option[Int])
+class Vn private (val id: String,
+                  val olang: String,
+                  val image: String,
+                  val l_wikidata: Option[String],
+                  val c_votecount: Int,
+                  val c_popularity: Int,
+                  val c_rating: Option[Int],
+                  val length: Int,
+                  val alias: Option[String],
+                  val l_renai: Option[Int],
+                  val desc: String,
+                  val c_average: Option[Int])

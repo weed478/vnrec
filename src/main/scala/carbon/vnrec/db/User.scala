@@ -14,9 +14,9 @@ object User {
   }
 }
 
-case class User private (id: String,
-                         ign_votes: Boolean,
-                         perm_imgvote: Boolean,
-                         perm_tag: Boolean,
-                         username: String,
-                         perm_lengthvote: Boolean)
+class User private (val id: String,
+                    val ign_votes: Boolean,
+                    val perm_imgvote: Boolean,
+                    val perm_tag: Boolean,
+                    val username: String,
+                    val perm_lengthvote: Boolean)

@@ -13,11 +13,11 @@ object VnTitle {
   }
 }
 
-case class VnTitle private (id: String,
-                            lang: String,
-                            title: String,
-                            latin: String,
-                            official: Boolean) {
+class VnTitle private (val id: String,
+                       val lang: String,
+                       val title: String,
+                       val latin: String,
+                       val official: Boolean) {
   def bestTitle: (Int, String) = {
     if (official) {
       if (lang == "en") (0, title) // official english

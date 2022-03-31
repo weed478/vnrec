@@ -12,6 +12,6 @@ object UserVn {
   }
 }
 
-case class UserVn private (uid: String,
-                           vid: String,
-                           vote: Int)
+class UserVn private (val uid: String,
+                      val vid: String,
+                      val vote: Int)
