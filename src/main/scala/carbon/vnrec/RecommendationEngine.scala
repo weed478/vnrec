@@ -9,29 +9,22 @@ class Recommendation(val id: String,
 class RecommendationEngine(private val db: Vndb) {
   def recommend(n: Int, initialID: String): Array[Recommendation] = {
     val vertices = db.vn
+      .map(_.id)
       .keyBy(_.hashCode.toLong)
       .mapValues(vid => if (vid == initialID) 1.0 else 0.0)
       .union(
         db.users
+          .map(_.id)
           .keyBy(_.hashCode.toLong)
           .mapValues(_ => 0.0)
       )
 
     val edges = db.ulist_vns
-      .map(row => {
-        val args = row.split('\t')
-        val uid = args(0)
-        val vid = args(1)
-        args(7)
-          .toDoubleOption
-          .map(vote => new Edge(
-            uid.hashCode.toLong,
-            vid.hashCode.toLong,
-            vote / 100.0
-          ))
-      })
-      .filter(_.isDefined)
-      .map(_.get)
+      .map(uvn => new Edge(
+        uvn.uid.hashCode.toLong,
+        uvn.vid.hashCode.toLong,
+        uvn.vote / 100.0
+      ))
 
     val credibility = Graph(vertices, edges)
       .aggregateMessages[Double](
@@ -50,6 +43,7 @@ class RecommendationEngine(private val db: Vndb) {
     biasedRatings
       .join(
         db.vn
+          .map(_.id)
           .filter(_ != initialID)
           .keyBy(_.hashCode.toLong)
       )

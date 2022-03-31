@@ -4,20 +4,23 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 class Vndb(private val sc: SparkContext) {
-  val vn: RDD[String] = sc
+  val vn: RDD[Vn] = sc
     .textFile("data/db/vn")
-    .map(_.split('\t')(0))
+    .map(Vn(_))
 
   val vn_titles: RDD[VnTitle] = sc
     .textFile("data/db/vn_titles")
-    .map(row => VnTitle(row.split('\t')))
+    .map(VnTitle(_))
 
-  val users: RDD[String] = sc
+  val users: RDD[User] = sc
     .textFile("data/db/users")
-    .map(_.split('\t')(0))
+    .map(User(_))
 
-  val ulist_vns: RDD[String] = sc
+  val ulist_vns: RDD[UserVn] = sc
     .textFile("data/db/ulist_vns")
+    .map(UserVn(_))
+    .filter(_.isDefined)
+    .map(_.get)
 
   def matchTitle(vid: String): String = {
     vn_titles

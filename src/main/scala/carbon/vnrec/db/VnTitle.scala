@@ -1,12 +1,23 @@
 package carbon.vnrec.db
 
-case class VnTitle(private val args: Array[String]) {
-  val id: String = args(0)
-  val lang: String = args(1)
-  val title: String = args(2)
-  val latin: String = args(3)
-  val official: Boolean = args(4) == "t"
+object VnTitle {
+  def apply(row: String): VnTitle = {
+    val args = row.split('\t')
+    new VnTitle(
+      args(0),
+      args(1),
+      args(2),
+      args(3),
+      args(4) == "t",
+    )
+  }
+}
 
+case class VnTitle private (id: String,
+                            lang: String,
+                            title: String,
+                            latin: String,
+                            official: Boolean) {
   def bestTitle: (Int, String) = {
     if (official) {
       if (lang == "en") (0, title) // official english
