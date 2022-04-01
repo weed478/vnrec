@@ -9,7 +9,7 @@ object Vn {
   def apply(row: String): Vn = {
     val args = row.split('\t')
     new Vn(
-      args(0),
+      Id(args(0)),
       args(1),
       args(2),
       toOption(args(3)),
@@ -25,7 +25,7 @@ object Vn {
   }
 }
 
-class Vn private (val id: String,
+class Vn private (val id: Long,
                   val olang: String,
                   val image: String,
                   val l_wikidata: Option[String],

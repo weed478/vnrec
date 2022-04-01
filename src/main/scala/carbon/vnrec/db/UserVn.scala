@@ -5,13 +5,13 @@ object UserVn {
     val args = row.split('\t')
     args(7).toIntOption
       .map(vote => new UserVn(
-        args(0),
-        args(1),
+        Id(args(0)),
+        Id(args(1)),
         vote,
       ))
   }
 }
 
-class UserVn private (val uid: String,
-                      val vid: String,
+class UserVn private (val uid: Long,
+                      val vid: Long,
                       val vote: Int)

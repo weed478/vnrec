@@ -22,7 +22,7 @@ class Vndb(private val sc: SparkContext) {
     .filter(_.isDefined)
     .map(_.get)
 
-  def matchTitle(vid: String): String = {
+  def matchTitle(vid: Long): String = {
     vn_titles
       .filter(_.id == vid)
       .map(_.bestTitle)
@@ -30,7 +30,7 @@ class Vndb(private val sc: SparkContext) {
       ._2
   }
 
-  def search(pattern: String): RDD[String] = {
+  def search(pattern: String): RDD[Long] = {
     vn_titles
       .filter(title => {
         title.title.toLowerCase.contains(pattern.toLowerCase) ||

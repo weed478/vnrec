@@ -1,6 +1,6 @@
 package carbon.vnrec
 
-import carbon.vnrec.db.Vndb
+import carbon.vnrec.db.{Id, Vndb}
 import org.apache.spark.{SparkConf, SparkContext}
 
 object Cli {
@@ -20,18 +20,18 @@ object Cli {
     args match {
       case Array("search", pattern) =>
         db.search(pattern).collect.foreach(vid => {
-          println(vid + ": " + db.matchTitle(vid))
+          println(Id(vid) + ": " + db.matchTitle(vid))
         })
 
       case Array("rec", initialID, n) =>
-        val initialTitle = db.matchTitle(initialID)
+        val initialTitle = db.matchTitle(Id(initialID))
 
         val recommendations = engine
-          .recommend(n.toInt, initialID)
+          .recommend(n.toInt, Id(initialID))
 
         println("Recommendations for " + initialTitle + ":")
         for (rec <- recommendations) {
-          println(rec.id + ": " + db.matchTitle(rec.id) + " (" + (rec.strength * 100).round / 100.0 + ")")
+          println(Id(rec.id) + ": " + db.matchTitle(rec.id) + " (" + (rec.strength * 100).round / 100.0 + ")")
         }
 
       case _ => println("Invalid arguments\n" +

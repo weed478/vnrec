@@ -3,26 +3,21 @@ package carbon.vnrec
 import carbon.vnrec.db.Vndb
 import org.apache.spark.graphx.{Edge, Graph}
 
-class Recommendation(val id: String,
+class Recommendation(val id: Long,
                      val strength: Double)
 
 class RecommendationEngine(private val db: Vndb) {
-  def recommend(n: Int, initialID: String): Array[Recommendation] = {
+  def recommend(n: Int, initialID: Long): Array[Recommendation] = {
     val vertices = db.vn
-      .map(_.id)
-      .keyBy(_.hashCode.toLong)
-      .mapValues(vid => if (vid == initialID) 1.0 else 0.0)
-      .union(
-        db.users
-          .map(_.id)
-          .keyBy(_.hashCode.toLong)
-          .mapValues(_ => 0.0)
+      .map(vn => (vn.id, if (vn.id == initialID) 1.0 else 0.0))
+      .union(db.users
+        .map(user => (user.id, 0.0))
       )
 
     val edges = db.ulist_vns
       .map(uvn => new Edge(
-        uvn.uid.hashCode.toLong,
-        uvn.vid.hashCode.toLong,
+        uvn.uid,
+        uvn.vid,
         uvn.vote / 100.0
       ))
 
@@ -45,10 +40,10 @@ class RecommendationEngine(private val db: Vndb) {
         db.vn
           .map(_.id)
           .filter(_ != initialID)
-          .keyBy(_.hashCode.toLong)
+          .keyBy(identity)
       )
       .map(_._2)
-      .top(n)
+      .top(n)(Ordering.by(_._1))
       .map(x => new Recommendation(x._2, x._1))
   }
 }

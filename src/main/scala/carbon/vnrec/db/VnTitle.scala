@@ -4,7 +4,7 @@ object VnTitle {
   def apply(row: String): VnTitle = {
     val args = row.split('\t')
     new VnTitle(
-      args(0),
+      Id(args(0)),
       args(1),
       args(2),
       args(3),
@@ -13,7 +13,7 @@ object VnTitle {
   }
 }
 
-class VnTitle private (val id: String,
+class VnTitle private (val id: Long,
                        val lang: String,
                        val title: String,
                        val latin: String,
