@@ -18,9 +18,7 @@ class Vndb(private val sc: SparkContext) {
 
   val ulist_vns: RDD[UserVn] = sc
     .textFile("data/db/ulist_vns")
-    .map(UserVn(_))
-    .filter(_.isDefined)
-    .map(_.get)
+    .flatMap(UserVn(_))
 
   def matchTitle(vid: Long): String = {
     vn_titles
