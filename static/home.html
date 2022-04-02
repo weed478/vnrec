@@ -7,13 +7,16 @@
 <body>
     <form action="results.html">
         <label>VN title or ID:</label><br />
-        <input type="text" name="title" required /><br />
+        <input type="text" name="vn" required /><br />
 
         <label>Type:</label>
         <select name="type">
             <option value="title">Title</option>
             <option value="id">ID</option>
         </select><br />
+
+        <label>Number of recommendations:</label>
+        <input type="number" name="count" min="1" max="50" size="2" value="10"><br />
 
         <input type="submit" value="Recommend!" />
     </form>
