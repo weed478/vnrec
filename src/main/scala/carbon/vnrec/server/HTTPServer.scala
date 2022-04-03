@@ -35,27 +35,23 @@ class HTTPServer(
       concat(
         path("") {
           get {
-            redirect("/static/home.html", StatusCodes.PermanentRedirect)
+            redirect("/home", StatusCodes.PermanentRedirect)
           }
         },
-        path("static" / "results.html") {
+        path("results") {
           parameters("vn", "type", "count".as[Int])(getResultsPage)
         },
-        path("static" / Segment) { s =>
+        path(Segment) { s =>
           get {
-            readFile(s) match {
-              case Some(content) =>
-                complete(
-                  HttpEntity(
-                    if (s.endsWith(".css"))
-                      ContentType(MediaTypes.`text/css`, HttpCharsets.`UTF-8`)
-                    else if (s.endsWith(".html"))
-                      ContentTypes.`text/html(UTF-8)`
-                    else ContentTypes.`text/plain(UTF-8)`,
-                    content
-                  )
-                )
-              case None => getErrorPage("Invalid page.")
+            val (content_type, file_name) =
+              if (s.endsWith(".css"))
+                (ContentType(MediaTypes.`text/css`, HttpCharsets.`UTF-8`), s)
+              else
+                (ContentTypes.`text/html(UTF-8)`, f"$s.html")
+
+            readFile(file_name) match {
+              case Some(content) => complete(HttpEntity(content_type, content))
+              case None          => getErrorPage("Invalid page.")
             }
           }
         }
@@ -78,14 +74,14 @@ class HTTPServer(
     val vnId =
       if (tpe == "id")
         vn.toLongOption match {
-          case Some(id) if vnQueryProvider.isValidId(id) => id
+          case Some(id) if vnQueryProvider.matchTitle(id).isDefined => id
           case Some(_) => return getErrorPage("Id not in the database.")
           case None    => return getErrorPage("Invalid id.")
         }
       else
         vnQueryProvider.search(vn).headOption match {
           case Some(id) => id
-          case None     => return getErrorPage("Invalid title.")
+          case None     => return getErrorPage("Title not in the database.")
         }
 
     val recommendations = vnRecommendationProvider.recommend(count, vnId)

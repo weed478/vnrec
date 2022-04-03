@@ -20,15 +20,13 @@ class MockVnQueryProvider extends VnQueryProvider {
 
   def matchTitle(vid: Long): Option[String] = db
     .filter { case (id, s) => vid == id }
-    .map { case (id, s) => Some(s) }
-    .head
+    .map { case (id, s) => s }
+    .headOption
 
   def search(pattern: String): Array[Long] =
     db.filter { case (id, s) => pattern == s }
       .map { case (id, s) => id }
       .toArray
-
-  def isValidId(vid: Long): Boolean = 0 <= vid && vid < 8
 }
 
 class MockVnRecommendationProvider extends VnRecommendationProvider {
