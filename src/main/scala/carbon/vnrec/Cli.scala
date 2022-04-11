@@ -23,14 +23,12 @@ object Cli {
           println(Id(vid) + ": " + db.matchTitle(vid))
         })
 
-      case Array("recommend", mode, n, initialID) =>
+      case Array("recommend", count, initialID) =>
         val initialTitle = db.matchTitle(Id(initialID))
 
-        val recommendations = mode match {
-          case "votes" => engine.recommend(n.toInt, Id(initialID))
-          case "tags" => engine.recommendByTags(n.toInt, Id(initialID))
-          case _ => throw new Exception("Invalid mode: " + mode)
-        }
+        val recommendations = engine
+          .recommend(Id(initialID))
+          .take(count.toInt)
 
         println("Recommendations for " + initialTitle + ":")
         for (rec <- recommendations) {
@@ -43,7 +41,7 @@ object Cli {
       case _ => println("Invalid arguments\n" +
         "Usage:\n" +
         "search NAME\n" +
-        "recommend votes|tags COUNT ID")
+        "recommend COUNT ID")
     }
 
     sc.stop()

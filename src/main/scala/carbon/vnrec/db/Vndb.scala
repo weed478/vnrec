@@ -33,7 +33,7 @@ class Vndb(private val sc: SparkContext) {
     .keyBy(t => t.tag)
     .mapValues(t => (t.vote, 1L))
     .reduceByKey((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
-    .mapValues(t => t._1 / t._2)
+    .mapValues(t => t._1 / t._2 * Math.log(t._2))
     .join(tags.keyBy(_.id).mapValues(_.name))
     .values
     .map(_.swap)
