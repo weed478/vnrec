@@ -1,7 +1,7 @@
 package carbon.vnrec.db
 
 object Id {
-  private val prefixes = Array(
+  val prefixes: Array[Char] = Array(
     'v',
     'u',
     'g',
