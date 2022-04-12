@@ -14,4 +14,4 @@ object TagVn {
 class TagVn (val tag: Long,
              val vid: Long,
              val vote: Double)
-extends Serializable
+  extends Serializable

@@ -37,3 +37,4 @@ class Vn private (val id: Long,
                   val l_renai: Option[Int],
                   val desc: String,
                   val c_average: Option[Int])
+  extends Serializable

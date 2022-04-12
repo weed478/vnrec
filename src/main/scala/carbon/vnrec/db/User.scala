@@ -20,3 +20,4 @@ class User private (val id: Long,
                     val perm_tag: Boolean,
                     val username: String,
                     val perm_lengthvote: Boolean)
+  extends Serializable

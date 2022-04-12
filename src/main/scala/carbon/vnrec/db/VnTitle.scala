@@ -17,7 +17,9 @@ class VnTitle private (val id: Long,
                        val lang: String,
                        val title: String,
                        val latin: String,
-                       val official: Boolean) {
+                       val official: Boolean)
+  extends Serializable {
+
   def bestTitle: (Int, String) = {
     if (official) {
       if (lang == "en") (0, title) // official english

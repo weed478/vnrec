@@ -15,3 +15,4 @@ object UserVn {
 class UserVn private (val uid: Long,
                       val vid: Long,
                       val vote: Int)
+  extends Serializable

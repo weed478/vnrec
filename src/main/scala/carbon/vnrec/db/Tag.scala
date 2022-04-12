@@ -12,4 +12,4 @@ object Tag {
 
 class Tag private (val id: Long,
                    val name: String)
-extends Serializable
+  extends Serializable
