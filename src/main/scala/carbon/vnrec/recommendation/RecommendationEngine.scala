@@ -1,4 +1,4 @@
-package carbon.vnrec
+package carbon.vnrec.recommendation
 
 import carbon.vnrec.db.Id.IdType
 import carbon.vnrec.db.Vndb

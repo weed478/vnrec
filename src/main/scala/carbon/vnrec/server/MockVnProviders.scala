@@ -1,7 +1,7 @@
 package carbon.vnrec.server
 
 import carbon.vnrec.VnRecommendationProvider
-import carbon.vnrec.Recommendation
+import carbon.vnrec.recommendation.Recommendation
 import carbon.vnrec.VnQueryProvider
 
 import scala.collection.Iterator

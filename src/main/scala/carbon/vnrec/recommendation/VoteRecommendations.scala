@@ -1,4 +1,4 @@
-package carbon.vnrec
+package carbon.vnrec.recommendation
 
 import carbon.vnrec.db.Id.IdType
 import org.apache.spark.graphx.{Edge, Graph, VertexRDD}

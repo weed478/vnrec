@@ -10,7 +10,7 @@ import scala.io.Source
 import carbon.vnrec.VnQueryProvider
 import carbon.vnrec.VnRecommendationProvider
 import carbon.vnrec.server.MockVnQueryProvider
-import carbon.vnrec.Recommendation
+import carbon.vnrec.recommendation.Recommendation
 import akka.http.scaladsl.server.StandardRoute
 
 // Temporary

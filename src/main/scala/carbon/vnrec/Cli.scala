@@ -1,6 +1,7 @@
 package carbon.vnrec
 
 import carbon.vnrec.db.{Id, Vndb}
+import carbon.vnrec.recommendation.RecommendationEngine
 import org.apache.spark.{SparkConf, SparkContext}
 
 object Cli {
