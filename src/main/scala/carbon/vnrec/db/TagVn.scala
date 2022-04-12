@@ -11,7 +11,7 @@ object TagVn {
   }
 }
 
-class TagVn private (val tag: Long,
-                     val vid: Long,
-                     val vote: Double)
+class TagVn (val tag: Long,
+             val vid: Long,
+             val vote: Double)
 extends Serializable

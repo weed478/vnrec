@@ -1,70 +1,56 @@
 package carbon.vnrec
 
+import carbon.vnrec.db.Id.IdType
 import carbon.vnrec.db.Vndb
-import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.graphx.{Edge, Graph, VertexRDD}
 import org.apache.spark.rdd.RDD
 
-class Recommendation(val id: Long,
+class Recommendation(val id: IdType,
                      val strength: Double)
 extends Serializable
 
 class RecommendationEngine(private val db: Vndb) {
-  def recommend(initialID: Long): RDD[Recommendation] = {
+
+  def recommend(initialID: IdType): RDD[Recommendation] = {
     normalize(recommendByVotes(initialID))
       .join(normalize(recommendByTags(initialID)))
-      .mapValues(w => (w._1 + w._2) / 2.0)
+      .mapValues(w => 0.3 * w._1 + 0.7 * w._2)
       .map(x => new Recommendation(x._1, x._2))
       .sortBy(_.strength, ascending = false)
   }
 
-  private def normalize(data: RDD[(Long, Double)]): RDD[(Long, Double)] = {
+  private def normalize(data: VertexRDD[Double]): VertexRDD[Double] = {
     val max = data.values.max()
     data.mapValues(_ / max)
   }
 
-  private def recommendByTags(initialID: Long): RDD[(Long, Double)] = {
-    val initialWeights = db.vn
-      .map(vn => (vn.id, if (vn.id == initialID) 1.0 else 0.0))
-      .union(db.tags.map(tag => (tag.id, 0.0)))
-
-    val tagVotes = db.tags_vn
-      .keyBy(t => (t.vid, t.tag))
-      .mapValues(t => (t.vote, 1L))
-      .reduceByKey((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
-      .mapValues(t => t._1 / t._2 * Math.log(t._2))
-      .map(t => new Edge(
-        t._1._1,
-        t._1._2,
-        t._2
-      ))
-
-    val tagImportance = Graph(initialWeights, tagVotes)
-      .aggregateMessages[Double](
-        // tag importance += vn weight * tag vote
-        e => e.sendToDst(e.srcAttr * e.attr),
+  private def aggregateIntoDst(graph: Graph[Double, Double]): VertexRDD[Double] =
+    graph.aggregateMessages[Double](
+      e => e.sendToDst(e.srcAttr * e.attr),
         _ + _
-      )
+    )
 
-    val similarity = Graph(tagImportance, tagVotes)
-      .aggregateMessages[Double](
-        // vn similarity += tag importance * tag_vote
-        e => e.sendToSrc(e.dstAttr * e.attr),
-        _ + _
-      )
+  private def initialVnWith(other: RDD[IdType], initialId: IdType): VertexRDD[Double] =
+    VertexRDD(db.vn
+      .map(vn => (vn.id, if (vn.id == initialId) 1.0 else 0.0))
+      .union(other.map(k => (k, 0.0)))
+    )
 
-    db.vn.map(_.id)
-      .filter(_ != initialID)
-      .keyBy(identity)
-      .join(similarity)
-      .values
+  private def recommendByTags(initialID: IdType): VertexRDD[Double] = {
+    val initialWeights = initialVnWith(db.tags.map(_.id), initialID)
+
+    val tagVotes = db.normalizedTagVotes
+      .map(t => new Edge(t.vid, t.tag, t.vote))
+
+    val tagImportance = aggregateIntoDst(Graph(initialWeights, tagVotes))
+
+    val similarity = aggregateIntoDst(Graph(tagImportance, tagVotes).reverse)
+
+    similarity.filter(_._1 != initialID)
   }
 
-  private def recommendByVotes(initialID: Long): RDD[(Long, Double)] = {
-    val vertices = db.vn
-      .map(vn => (vn.id, if (vn.id == initialID) 1.0 else 0.0))
-      .union(db.users
-        .map(user => (user.id, 0.0))
-      )
+  private def recommendByVotes(initialID: IdType): VertexRDD[Double] = {
+    val vertices = initialVnWith(db.users.map(_.id), initialID)
 
     val edges = db.ulist_vns
       .map(uvn => new Edge(
@@ -73,11 +59,7 @@ class RecommendationEngine(private val db: Vndb) {
         uvn.vote / 100.0
       ))
 
-    val credibility = Graph(vertices, edges)
-      .aggregateMessages[Double](
-        triple => triple.sendToSrc(triple.dstAttr * triple.attr),
-        _ + _
-      )
+    val credibility = aggregateIntoDst(Graph(vertices, edges).reverse)
 
     val biasedRatings = Graph(credibility, edges)
       .aggregateMessages[(Double, Double)](
@@ -87,10 +69,6 @@ class RecommendationEngine(private val db: Vndb) {
       .mapValues(x => x._1 / x._2 * math.log(x._2))
       .filter(!_._2.isNaN)
 
-    db.vn.map(_.id)
-      .filter(_ != initialID)
-      .keyBy(identity)
-      .join(biasedRatings)
-      .values
+    biasedRatings.filter(_._1 != initialID)
   }
 }

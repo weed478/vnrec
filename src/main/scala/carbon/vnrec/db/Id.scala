@@ -1,6 +1,8 @@
 package carbon.vnrec.db
 
 object Id {
+  type IdType = Long
+
   val prefixes: Array[Char] = Array(
     'v',
     'u',

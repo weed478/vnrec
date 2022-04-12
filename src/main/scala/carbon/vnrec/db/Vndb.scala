@@ -28,16 +28,23 @@ class Vndb(private val sc: SparkContext) {
     .textFile("data/db/tags_vn")
     .map(TagVn(_))
 
-  def getTags(vid: Long): RDD[(String, Double)] = tags_vn
-    .filter(_.vid == vid)
-    .keyBy(t => t.tag)
+  val normalizedTagVotes: RDD[TagVn] = tags_vn
+    .keyBy(t => (t.tag, t.vid))
     .mapValues(t => (t.vote, 1L))
     .reduceByKey((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
     .mapValues(t => t._1 / t._2 * Math.log(t._2))
-    .join(tags.keyBy(_.id).mapValues(_.name))
-    .values
-    .map(_.swap)
-    .sortBy(_._2, ascending = false)
+    .filter(!_._2.isNaN)
+    .map(x => new TagVn(x._1._1, x._1._2, x._2))
+
+  def getTags(vid: Long): RDD[(String, Double)] =
+    normalizedTagVotes
+      .filter(_.vid == vid)
+      .keyBy(_.tag)
+      .mapValues(_.vote)
+      .join(tags.keyBy(_.id).mapValues(_.name))
+      .values
+      .map(_.swap)
+      .sortBy(_._2, ascending = false)
 
   def matchTitle(vid: Long): String = {
     vn_titles
