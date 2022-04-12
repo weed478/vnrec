@@ -1,31 +1,24 @@
 package carbon.vnrec.db
 
-import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
-class Vndb(private val sc: SparkContext) {
-  val vn: RDD[Vn] = sc
-    .textFile("data/db/vn")
+class Vndb(data: DataProvider) {
+  val vn: RDD[Vn] = data.vn
     .map(Vn(_))
 
-  val vn_titles: RDD[VnTitle] = sc
-    .textFile("data/db/vn_titles")
+  val vn_titles: RDD[VnTitle] = data.vn_titles
     .map(VnTitle(_))
 
-  val users: RDD[User] = sc
-    .textFile("data/db/users")
+  val users: RDD[User] = data.users
     .map(User(_))
 
-  val ulist_vns: RDD[UserVn] = sc
-    .textFile("data/db/ulist_vns")
+  val ulist_vns: RDD[UserVn] = data.ulist_vns
     .flatMap(UserVn(_))
 
-  val tags: RDD[Tag] = sc
-    .textFile("data/db/tags")
+  val tags: RDD[Tag] = data.tags
     .map(Tag(_))
 
-  val tags_vn: RDD[TagVn] = sc
-    .textFile("data/db/tags_vn")
+  val tags_vn: RDD[TagVn] = data.tags_vn
     .map(TagVn(_))
 
   val normalizedTagVotes: RDD[TagVn] = tags_vn

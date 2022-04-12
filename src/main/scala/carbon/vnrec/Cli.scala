@@ -1,6 +1,6 @@
 package carbon.vnrec
 
-import carbon.vnrec.db.{Id, Vndb}
+import carbon.vnrec.db.{DirectoryDataProvider, Id, Vndb}
 import carbon.vnrec.recommendation.RecommendationEngine
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -15,7 +15,8 @@ object Cli {
       sc
     }
 
-    val db = new Vndb(sc)
+    val data = new DirectoryDataProvider(sc, "data")
+    val db = new Vndb(data)
     val engine = new RecommendationEngine(db)
 
     args match {
