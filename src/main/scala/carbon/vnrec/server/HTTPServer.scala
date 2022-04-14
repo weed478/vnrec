@@ -12,6 +12,11 @@ import carbon.vnrec.VnRecommendationProvider
 import carbon.vnrec.server.MockVnQueryProvider
 import carbon.vnrec.recommendation.Recommendation
 import akka.http.scaladsl.server.StandardRoute
+import spray.json._
+import DefaultJsonProtocol._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import spray.json._
+import carbon.vnrec.db.Id
 
 // Temporary
 object HTTPServer {
@@ -23,10 +28,14 @@ object HTTPServer {
   }
 }
 
+trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
+  implicit val recommendationFormat = jsonFormat2(Recommendation)
+}
+
 class HTTPServer(
     val vnQueryProvider: VnQueryProvider,
     val vnRecommendationProvider: VnRecommendationProvider
-) {
+) extends JsonSupport {
   def serve() = {
     implicit val system = ActorSystem(Behaviors.empty, "server-actor-system")
     implicit val executionContext = system.executionContext
@@ -37,6 +46,22 @@ class HTTPServer(
           get {
             redirect("/home", StatusCodes.PermanentRedirect)
           }
+        },
+        pathPrefix("api") {
+          concat(
+            path("search" / Segment) { s =>
+              get {
+                complete(vnQueryProvider.search(s).toJson)
+              }
+            },
+            path("recommend" / Segment / Segment) { (count, id) =>
+              get {
+                complete(
+                  vnRecommendationProvider.recommend(count.toInt, Id(id)).toJson
+                )
+              }
+            }
+          )
         },
         path("results") {
           parameters("vn", "type", "count".as[Int])(getResultsPage)
