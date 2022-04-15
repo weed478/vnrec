@@ -7,8 +7,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import scala.io.StdIn
 import scala.io.Source
-import carbon.vnrec.VnQueryProvider
-import carbon.vnrec.VnRecommendationProvider
+import carbon.vnrec.{BackendSystem, VnQueryProvider, VnRecommendationProvider}
 import carbon.vnrec.server.MockVnQueryProvider
 import carbon.vnrec.recommendation.Recommendation
 import akka.http.scaladsl.server.StandardRoute
@@ -22,8 +21,8 @@ import carbon.vnrec.db.Id
 object HTTPServer {
   def main(args: Array[String]): Unit = {
     new HTTPServer(
-      new MockVnQueryProvider(),
-      new MockVnRecommendationProvider()
+      BackendSystem,
+      BackendSystem
     ).serve()
   }
 }
