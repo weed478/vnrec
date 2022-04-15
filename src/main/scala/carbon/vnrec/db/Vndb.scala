@@ -5,21 +5,27 @@ import org.apache.spark.rdd.RDD
 class Vndb(data: DataProvider) {
   val vn: RDD[Vn] = data.vn
     .map(Vn(_))
+    .cache()
 
   val vn_titles: RDD[VnTitle] = data.vn_titles
     .map(VnTitle(_))
+    .cache()
 
   val users: RDD[User] = data.users
     .map(User(_))
+    .cache()
 
   val ulist_vns: RDD[UserVn] = data.ulist_vns
     .flatMap(UserVn(_))
+    .cache()
 
   val tags: RDD[Tag] = data.tags
     .map(Tag(_))
+    .cache()
 
   val tags_vn: RDD[TagVn] = data.tags_vn
     .map(TagVn(_))
+    .cache()
 
   val normalizedTagVotes: RDD[TagVn] = tags_vn
     .keyBy(t => (t.tag, t.vid))
@@ -28,6 +34,7 @@ class Vndb(data: DataProvider) {
     .mapValues(t => t._1 / t._2 * Math.log(t._2))
     .filter(!_._2.isNaN)
     .map(x => new TagVn(x._1._1, x._1._2, x._2))
+    .cache()
 
   def getTags(vid: Long): RDD[(String, Double)] =
     normalizedTagVotes

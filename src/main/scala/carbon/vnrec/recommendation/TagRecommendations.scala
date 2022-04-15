@@ -10,6 +10,7 @@ trait TagRecommendations extends RecommendationBase {
 
     val tagVotes = db.normalizedTagVotes
       .map(t => new Edge(t.vid, t.tag, t.vote))
+      .cache()
 
     val tagImportance = aggregateIntoDst(Graph(initialWeights, tagVotes))
 

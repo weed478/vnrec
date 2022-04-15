@@ -14,6 +14,7 @@ trait VoteRecommendations extends RecommendationBase {
         uvn.vid,
         uvn.vote / 100.0
       ))
+      .cache()
 
     val credibility = aggregateIntoDst(Graph(vertices, edges).reverse)
 
