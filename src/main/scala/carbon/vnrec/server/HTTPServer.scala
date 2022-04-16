@@ -7,7 +7,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import scala.io.StdIn
 import scala.io.Source
-import carbon.vnrec.{BackendSystem, VnQueryProvider, VnRecommendationProvider}
+import carbon.vnrec.{LocalSpark, BackendSystem, VnQueryProvider, VnRecommendationProvider}
 import carbon.vnrec.server.MockVnQueryProvider
 import carbon.vnrec.recommendation.Recommendation
 import akka.http.scaladsl.server.StandardRoute
@@ -15,15 +15,17 @@ import spray.json._
 import DefaultJsonProtocol._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
-import carbon.vnrec.db.Id
+import carbon.vnrec.db.{DirectoryDataProvider, Id}
 
 // Temporary
 object HTTPServer {
   def main(args: Array[String]): Unit = {
-    new HTTPServer(
-      BackendSystem,
-      BackendSystem
-    ).serve()
+    val sc = LocalSpark.getOrCreate()
+    val data = new DirectoryDataProvider(sc, "data")
+    val backend = new BackendSystem(data)
+    new HTTPServer(backend, backend)
+      .serve()
+    sc.stop()
   }
 }
 

@@ -1,18 +1,10 @@
 package carbon.vnrec
-import carbon.vnrec.db.{DirectoryDataProvider, Vndb}
+import carbon.vnrec.db.{DataProvider, Vndb}
 import carbon.vnrec.recommendation.{Recommendation, RecommendationEngine}
-import org.apache.spark.{SparkConf, SparkContext}
 
-object BackendSystem extends VnQueryProvider with VnRecommendationProvider {
-  private val sc = {
-    val conf = new SparkConf()
-      .setMaster("local[8]")
-      .setAppName("vnrec")
-    val sc = SparkContext.getOrCreate(conf)
-    sc.setLogLevel("WARN")
-    sc
-  }
-  private val data = new DirectoryDataProvider(sc, "data")
+class BackendSystem (data: DataProvider)
+  extends VnQueryProvider with VnRecommendationProvider {
+
   private val db = new Vndb(data)
   private val engine = new RecommendationEngine(db)
 
