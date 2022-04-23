@@ -7,7 +7,12 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import scala.io.StdIn
 import scala.io.Source
-import carbon.vnrec.{LocalSpark, BackendSystem, VnQueryProvider, VnRecommendationProvider}
+import carbon.vnrec.{
+  LocalSpark,
+  BackendSystem,
+  VnQueryProvider,
+  VnRecommendationProvider
+}
 import carbon.vnrec.server.MockVnQueryProvider
 import carbon.vnrec.recommendation.Recommendation
 import akka.http.scaladsl.server.StandardRoute
@@ -16,8 +21,8 @@ import DefaultJsonProtocol._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
 import carbon.vnrec.db.{DirectoryDataProvider, Id}
+import scala.util.Success
 
-// Temporary
 object HTTPServer {
   def main(args: Array[String]): Unit = {
     val sc = LocalSpark.getOrCreate()
@@ -37,10 +42,12 @@ class HTTPServer(
     val vnQueryProvider: VnQueryProvider,
     val vnRecommendationProvider: VnRecommendationProvider
 ) extends JsonSupport {
-  def serve() = {
-    implicit val system = ActorSystem(Behaviors.empty, "server-actor-system")
-    implicit val executionContext = system.executionContext
+  implicit val system = ActorSystem(Behaviors.empty, "server-actor-system")
+  implicit val executionContext = system.executionContext
 
+  val recommendationCache = new RecommendationCache(vnRecommendationProvider)
+
+  def serve() = {
     val route =
       concat(
         path("") {
@@ -57,9 +64,10 @@ class HTTPServer(
             },
             path("recommend" / Segment / Segment) { (count, id) =>
               get {
-                complete(
-                  vnRecommendationProvider.recommend(count.toInt, Id(id)).toJson
-                )
+                val recommendationFuture =
+                  recommendationCache.recommendCached(count.toInt, Id(id))
+
+                onSuccess(recommendationFuture) { complete(_) }
               }
             }
           )
@@ -98,36 +106,48 @@ class HTTPServer(
 
   def getResultsPage(vn: String, tpe: String, count: Int): StandardRoute = {
     val vnId =
-      if (tpe == "id")
-        vn.toLongOption match {
+      if (tpe == "id") {
+        Id.tryGet(vn) match {
           case Some(id) if vnQueryProvider.matchTitle(id).isDefined => id
           case Some(_) => return getErrorPage("Id not in the database.")
           case None    => return getErrorPage("Invalid id.")
         }
-      else
+      } else
         vnQueryProvider.search(vn).headOption match {
           case Some(id) => id
           case None     => return getErrorPage("Title not in the database.")
         }
 
-    val recommendations = vnRecommendationProvider.recommend(count, vnId)
+    val recommendationFuture =
+      recommendationCache.recommendCached(count.toInt, vnId)
 
-    val recommendationsText =
-      recommendations
-        .map { rec =>
-          f"${vnQueryProvider.matchTitle(rec.id).get} [${rec.strength}]"
-        }
-        .mkString(" <br /> ")
+    recommendationFuture.value match {
+      case Some(Success(recommendations)) => {
+        val recommendationsText =
+          recommendations
+            .map { rec =>
+              f"${vnQueryProvider.matchTitle(rec.id).get} [${rec.strength}]"
+            }
+            .mkString(" <br /> ")
 
-    val fileContent =
-      readFile("results.html").get.replace("{{}}", recommendationsText)
+        val fileContent =
+          readFile("results.html").get.replace("{{}}", recommendationsText)
 
-    complete(
-      HttpEntity(
-        ContentTypes.`text/html(UTF-8)`,
-        fileContent
-      )
-    )
+        complete(
+          HttpEntity(
+            ContentTypes.`text/html(UTF-8)`,
+            fileContent
+          )
+        )
+      }
+      case _ =>
+        complete(
+          HttpEntity(
+            ContentTypes.`text/html(UTF-8)`,
+            readFile("wait.html").get
+          )
+        )
+    }
   }
 
   def getErrorPage(message: String): StandardRoute = {

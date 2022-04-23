@@ -6,7 +6,7 @@ object Id {
   val prefixes: Array[Char] = Array(
     'v',
     'u',
-    'g',
+    'g'
   )
 
   private val numIds = prefixes.length
@@ -16,6 +16,14 @@ object Id {
       .takeWhile(_ != id(0))
       .length
     id.substring(1).toLong * numIds + offset
+  }
+
+  def tryGet(id: String): Option[Long] = {
+    val offset = prefixes.iterator
+      .takeWhile(_ != id(0))
+      .length
+    if (offset == numIds) None
+    else id.substring(1).toLongOption.map(_ * numIds + offset)
   }
 
   def apply(id: Long): String = {
