@@ -2,19 +2,10 @@ package carbon.vnrec
 
 import carbon.vnrec.db.{DirectoryDataProvider, Id, Vndb}
 import carbon.vnrec.recommendation.RecommendationEngine
-import org.apache.spark.{SparkConf, SparkContext}
 
 object Cli {
   def main(args: Array[String]): Unit = {
-    val sc = {
-      val conf = new SparkConf()
-        .setMaster("local[8]")
-        .setAppName("vnrec")
-      val sc = new SparkContext(conf)
-      sc.setLogLevel("WARN")
-      sc
-    }
-
+    val sc = LocalSpark.getOrCreate()
     val data = new DirectoryDataProvider(sc, "data")
     val db = new Vndb(data)
     val engine = new RecommendationEngine(db)
