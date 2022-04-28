@@ -25,7 +25,7 @@ class VndbNoSpoil(db: Vndb) extends Vndb {
         .filter(_._1._2 == vid)
         .keyBy(_._1._1)
         .mapValues(_._2))
-      .filter(_._2._2 < 0.5)
+      .filter(_._2._2 < 1.2)
       .mapValues(_._1)
       .join(tags.keyBy(_.id).mapValues(_.name))
       .values
