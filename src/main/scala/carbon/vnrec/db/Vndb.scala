@@ -33,7 +33,7 @@ class Vndb(data: DataProvider) {
     .reduceByKey((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
     .mapValues(t => t._1 / t._2 * Math.log(t._2))
     .filter(!_._2.isNaN)
-    .map(x => new TagVn(x._1._1, x._1._2, x._2))
+    .map(x => new TagVn(x._1._1, x._1._2, x._2, None))
     .cache()
 
   def getTags(vid: Long): RDD[(String, Double)] =
