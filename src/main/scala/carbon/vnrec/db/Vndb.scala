@@ -1,33 +1,22 @@
 package carbon.vnrec.db
 
+import carbon.vnrec.db.Id.IdType
 import org.apache.spark.rdd.RDD
 
-class Vndb(data: DataProvider) {
-  val vn: RDD[Vn] = data.vn
-    .map(Vn(_))
-    .cache()
+trait Vndb {
+  def vn: RDD[Vn]
 
-  val vn_titles: RDD[VnTitle] = data.vn_titles
-    .map(VnTitle(_))
-    .cache()
+  def vn_titles: RDD[VnTitle]
 
-  val users: RDD[User] = data.users
-    .map(User(_))
-    .cache()
+  def users: RDD[User]
 
-  val ulist_vns: RDD[UserVn] = data.ulist_vns
-    .flatMap(UserVn(_))
-    .cache()
+  def ulist_vns: RDD[UserVn]
 
-  val tags: RDD[Tag] = data.tags
-    .map(Tag(_))
-    .cache()
+  def tags: RDD[Tag]
 
-  val tags_vn: RDD[TagVn] = data.tags_vn
-    .map(TagVn(_))
-    .cache()
+  def tags_vn: RDD[TagVn]
 
-  val normalizedTagVotes: RDD[TagVn] = tags_vn
+  def normalizedTagVotes: RDD[TagVn] = tags_vn
     .keyBy(t => (t.tag, t.vid))
     .mapValues(t => (t.vote, 1L))
     .reduceByKey((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
@@ -35,6 +24,19 @@ class Vndb(data: DataProvider) {
     .filter(!_._2.isNaN)
     .map(x => new TagVn(x._1._1, x._1._2, x._2, None))
     .cache()
+
+  def tagSpoilerRatings: RDD[((IdType, IdType), Double)] =
+    tags_vn
+      .keyBy(t => (t.tag, t.vid))
+      .mapValues(t => (t.spoiler match {
+        case Some(MajorSpoiler) => 3.0
+        case Some(MinorSpoiler) => 2.0
+        case Some(NoSpoiler) => 1.0
+        case _ => -1.0
+      }, 1L))
+      .filter(_._2._1 > 0)
+      .reduceByKey((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
+      .mapValues(t => t._1 / t._2)
 
   def getTags(vid: Long): RDD[(String, Double)] =
     normalizedTagVotes
@@ -63,4 +65,8 @@ class Vndb(data: DataProvider) {
       .map(_.id)
       .distinct
   }
+
+  def safe: Vndb = new VndbSafe(this)
+
+  def noSpoil: Vndb = new VndbNoSpoil(this)
 }

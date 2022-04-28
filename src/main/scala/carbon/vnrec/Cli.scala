@@ -1,13 +1,13 @@
 package carbon.vnrec
 
-import carbon.vnrec.db.{DirectoryDataProvider, Id, Vndb}
+import carbon.vnrec.db.{DirectoryDataProvider, Id, VndbRaw}
 import carbon.vnrec.recommendation.RecommendationEngine
 
 object Cli {
   def main(args: Array[String]): Unit = {
     val sc = LocalSpark.getOrCreate()
     val data = new DirectoryDataProvider(sc, "data")
-    val db = new Vndb(data)
+    val db = new VndbRaw(data)
     val engine = new RecommendationEngine(db)
 
     args match {

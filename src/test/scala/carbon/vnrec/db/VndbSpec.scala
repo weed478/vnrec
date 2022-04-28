@@ -4,7 +4,7 @@ import carbon.vnrec.SparkSpec
 
 class VndbSpec extends SparkSpec {
 
-  private val db = new Vndb(new MockDataProvider(sc))
+  private val db = new VndbRaw(new MockDataProvider(sc))
 
   "VNDB" should "load VNs" in {
     assert(db.vn.filter(_.id == Id("v102")).count() === 1)
