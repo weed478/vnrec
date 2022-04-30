@@ -13,6 +13,7 @@ class VndbSafe(db: Vndb) extends Vndb {
 
   override def tags: RDD[Tag] = db.tags
     .filter(_.cat != EroTag)
+    .cache()
 
   override def tags_vn: RDD[TagVn] = db.tags_vn
 }
