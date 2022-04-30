@@ -1,21 +1,21 @@
 package carbon.vnrec.recommendation
 
 import carbon.vnrec.db.Id.IdType
-import org.apache.spark.graphx.{Edge, Graph, VertexRDD}
+import org.apache.spark.rdd.RDD
 
 trait TagRecommendations extends RecommendationBase {
 
-  protected def recommendByTags(initialID: IdType): VertexRDD[Double] = {
-    val initialWeights = initialVnWith(db.tags.map(_.id), initialID)
-
-    val tagVotes = db.normalizedTagVotes
-      .map(t => new Edge(t.vid, t.tag, t.vote))
-      .cache()
-
-    val tagImportance = aggregateIntoDst(Graph(initialWeights, tagVotes))
-
-    val similarity = aggregateIntoDst(Graph(tagImportance, tagVotes).reverse)
-
-    similarity.filter(_._1 != initialID)
+  protected def recommendByTags(initialID: IdType): RDD[(IdType, Double)] = {
+    db.normalizedTagVotes
+      .filter(_.vid == initialID)
+      .keyBy(_.tag)
+      .join(db
+        .normalizedTagVotes
+        .filter(_.vid != initialID)
+        .keyBy(_.tag))
+      .values
+      .keyBy(_._2.vid)
+      .mapValues(x => x._1.vote * x._2.vote)
+      .reduceByKey(_ + _)
   }
 }
