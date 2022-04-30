@@ -9,7 +9,7 @@ trait RecommendationBase {
 
   protected val db: Vndb
 
-  protected def normalize(data: VertexRDD[Double]): VertexRDD[Double] = {
+  protected def normalize(data: RDD[(IdType, Double)]): RDD[(IdType, Double)] = {
     if (data.isEmpty()) data
     else {
       val max = data.values.max()
