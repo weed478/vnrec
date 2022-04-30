@@ -5,7 +5,7 @@ import carbon.vnrec.db.Vndb
 import org.apache.spark.rdd.RDD
 
 class RecommendationEngine(protected val db: Vndb)
-  extends VoteRecommendations with TagRecommendations {
+  extends GlobalVoteRecommendations with TagRecommendations {
 
   def recommend(initialID: IdType): RDD[Recommendation] = {
     normalize(recommendByVotes(initialID))
