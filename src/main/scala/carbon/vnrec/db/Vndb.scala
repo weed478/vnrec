@@ -3,6 +3,8 @@ package carbon.vnrec.db
 import carbon.vnrec.db.Id.IdType
 import org.apache.spark.rdd.RDD
 
+import scala.reflect.ClassTag
+
 trait Vndb {
   def vn: RDD[Vn]
 
@@ -47,7 +49,20 @@ trait Vndb {
       .join(tags.keyBy(_.id).mapValues(_.name))
       .values
       .map(_.swap)
-      .sortBy(_._2, ascending = false)
+
+  def joinToTags[T: ClassTag](vid: T => IdType)(data: RDD[T]): RDD[(T, Seq[(String, Double)])] =
+    data
+      .keyBy(vid)
+      .join(normalizedTagVotes.keyBy(_.vid))
+      .values
+      .keyBy(_._2.tag)
+      .mapValues { case (t, tvn) => (t, tvn.vote) }
+      .join(tags.keyBy(_.id).mapValues(_.name))
+      .values
+      .map { case ((t, strength), tag) => (t, Seq((tag, strength))) }
+      .keyBy(x => vid(x._1))
+      .reduceByKey((a, b) => (a._1, a._2 ++ b._2))
+      .values
 
   def matchTitle(vid: Long): String = {
     vn_titles

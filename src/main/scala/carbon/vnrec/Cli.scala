@@ -1,7 +1,7 @@
 package carbon.vnrec
 
 import carbon.vnrec.db.{DirectoryDataProvider, Id, VndbRaw}
-import carbon.vnrec.recommendation.RecommendationEngine
+import carbon.vnrec.recommendation.{Recommendation, RecommendationEngine}
 
 object Cli {
   def main(args: Array[String]): Unit = {
@@ -27,14 +27,15 @@ object Cli {
       case Array("recommend", count, initialID) =>
         val initialTitle = db.matchTitle(Id(initialID))
 
-        val recommendations = engine
-          .recommend(Id(initialID))
-          .take(count.toInt)
+        val recommendations = filteredDb
+          .joinToTags[Recommendation](_.id)(
+            engine.recommend(Id(initialID))
+          ).top(count.toInt)(Ordering.by(_._1.strength))
 
         println("Recommendations for " + initialTitle + ":")
-        for (rec <- recommendations) {
+        for ((rec, tags) <- recommendations) {
           println(s"${Id(rec.id)}: ${db.matchTitle(rec.id)} (${(rec.strength * 100).round / 100.0})")
-          for ((tag, vote) <- filteredDb.getTags(rec.id).take(3)) {
+          for ((tag, vote) <- tags.sortBy(_._2).takeRight(3)) {
             println(s" - $tag (${(vote * 100).round / 100.0})")
           }
         }

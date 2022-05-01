@@ -12,6 +12,5 @@ class RecommendationEngine(protected val db: Vndb)
       .join(normalize(recommendByTags(initialID)))
       .mapValues(w => 0.3 * w._1 + 0.7 * w._2)
       .map(x => Recommendation(x._1, x._2))
-      .sortBy(_.strength, ascending = false)
   }
 }

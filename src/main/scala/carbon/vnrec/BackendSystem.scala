@@ -15,5 +15,5 @@ class BackendSystem (data: DataProvider)
     db.search(pattern).take(10)
 
   override def recommend(n: Int, initialID: Long): Array[Recommendation] =
-    engine.recommend(initialID).take(n)
+    engine.recommend(initialID).top(n)(Ordering.by(_.strength))
 }
