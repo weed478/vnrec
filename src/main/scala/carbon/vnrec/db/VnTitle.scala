@@ -1,5 +1,7 @@
 package carbon.vnrec.db
 
+import carbon.vnrec.db.Id.IdType
+
 object VnTitle {
   def apply(row: String): VnTitle = {
     val args = row.split('\t')
@@ -13,7 +15,7 @@ object VnTitle {
   }
 }
 
-class VnTitle private (val id: Long,
+class VnTitle private (val id: IdType,
                        val lang: String,
                        val title: String,
                        val latin: String,

@@ -41,7 +41,7 @@ trait Vndb {
       .mapValues(t => t._1 / t._2)
       .cache()
 
-  def getTags(vid: Long): RDD[(String, Double)] =
+  def getTags(vid: IdType): RDD[(String, Double)] =
     normalizedTagVotes
       .filter(_.vid == vid)
       .keyBy(_.tag)
@@ -64,7 +64,7 @@ trait Vndb {
       .reduceByKey((a, b) => (a._1, a._2 ++ b._2))
       .values
 
-  def matchTitle(vid: Long): String = {
+  def matchTitle(vid: IdType): String = {
     vn_titles
       .filter(_.id == vid)
       .map(_.bestTitle)
@@ -72,7 +72,7 @@ trait Vndb {
       ._2
   }
 
-  def search(pattern: String): RDD[Long] = {
+  def search(pattern: String): RDD[IdType] = {
     vn_titles
       .filter(title => {
         title.title.toLowerCase.contains(pattern.toLowerCase) ||

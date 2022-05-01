@@ -1,5 +1,7 @@
 package carbon.vnrec.db
 
+import carbon.vnrec.db.Id.IdType
+
 object User {
   def apply(row: String): User = {
     val args = row.split('\t')
@@ -14,7 +16,7 @@ object User {
   }
 }
 
-class User private (val id: Long,
+class User private (val id: IdType,
                     val ign_votes: Boolean,
                     val perm_imgvote: Boolean,
                     val perm_tag: Boolean,

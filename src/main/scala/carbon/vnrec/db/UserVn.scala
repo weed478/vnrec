@@ -1,5 +1,7 @@
 package carbon.vnrec.db
 
+import carbon.vnrec.db.Id.IdType
+
 object UserVn {
   def apply(row: String): Option[UserVn] = {
     val args = row.split('\t')
@@ -12,7 +14,7 @@ object UserVn {
   }
 }
 
-class UserVn private (val uid: Long,
-                      val vid: Long,
+class UserVn private (val uid: IdType,
+                      val vid: IdType,
                       val vote: Int)
   extends Serializable

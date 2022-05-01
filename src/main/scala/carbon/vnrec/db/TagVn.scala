@@ -1,5 +1,7 @@
 package carbon.vnrec.db
 
+import carbon.vnrec.db.Id.IdType
+
 object TagVn {
   def apply(row: String): TagVn = {
     val args = row.split('\t')
@@ -21,8 +23,8 @@ case object NoSpoiler extends TagSpoiler
 case object MinorSpoiler extends TagSpoiler
 case object MajorSpoiler extends TagSpoiler
 
-class TagVn (val tag: Long,
-             val vid: Long,
+class TagVn (val tag: IdType,
+             val vid: IdType,
              val vote: Double,
              val spoiler: Option[TagSpoiler])
   extends Serializable

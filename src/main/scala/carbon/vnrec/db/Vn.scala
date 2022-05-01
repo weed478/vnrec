@@ -1,5 +1,7 @@
 package carbon.vnrec.db
 
+import carbon.vnrec.db.Id.IdType
+
 object Vn {
   private def toOption(s: String): Option[String] = s match {
     case "\\N" => None
@@ -25,7 +27,7 @@ object Vn {
   }
 }
 
-class Vn private (val id: Long,
+class Vn private (val id: IdType,
                   val olang: String,
                   val image: String,
                   val l_wikidata: Option[String],
